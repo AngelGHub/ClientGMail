@@ -8,6 +8,8 @@ namespace ClientGMail
 {
     class MngControl
     {
+        private static string _pathFileHeaderMailLetter = @".\HeaderMailLetter.txt";
+
 
         static void Main(string[] args)
         {
@@ -36,8 +38,8 @@ namespace ClientGMail
             }
 
             Console.WriteLine("Запись списка писем в файл.");
-            ControlFileGMail controlFileGMail = new ControlFileGMail();
-            controlFileGMail.SaveToFIle(_list);
+            ControlFileGMail controlFileGMail = new ControlFileGMail(_pathFileHeaderMailLetter);
+            controlFileGMail.SaveHeaderMailLetter(_list);
         }
     }
 }

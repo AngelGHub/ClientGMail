@@ -9,18 +9,41 @@ namespace ClientGMail
 {
     class ControlFileGMail
     {
-        readonly string _path = @".\ListGmailMsg.txt";
+        private readonly string _pathFileHeaderMailLetter;
 
-        public void SaveToFIle(List<string> list)
+        public string PathFileHeaderMailLetter
+        {
+            get { return _pathFileHeaderMailLetter; }
+        }
+
+
+        public ControlFileGMail(string pathFileHeaderMailLetter)
+        {
+            _pathFileHeaderMailLetter = pathFileHeaderMailLetter;
+        }
+
+        public void SaveHeaderMailLetter(List<string> headerMailLetter)
         {
 
-            using (FileStream fileStream = new FileStream(_path, FileMode.OpenOrCreate))
+            using (FileStream fileStream = new FileStream(_pathFileHeaderMailLetter, FileMode.OpenOrCreate))
             {
-                foreach (var txt in list)
+                foreach (string header in headerMailLetter)
                 {
-                    byte[] array = System.Text.Encoding.Default.GetBytes(txt + "\n");
+                    byte[] array = Encoding.UTF8.GetBytes(header + Environment.NewLine);
 
-                    fileStream.Write(array, 0, array.Length);
+                    int offset = 0;
+                    int count = 1024;
+                    int countData = array.Length;
+                    while (offset < countData)
+                    {
+                        int value = countData - offset;
+                        if (value < count)
+                            count = value;
+
+                        fileStream.Write(array, offset, count);
+
+                        offset += count;
+                    }
                 }
 
             }
