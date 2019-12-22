@@ -17,59 +17,69 @@ namespace ClientGMail
 {
     class ControlRequestGMail
     {
-        // If modifying these scopes, delete your previously saved credentials
-        // at ~/.credentials/gmail-dotnet-quickstart.json
-        static string[] Scopes = { GmailService.Scope.GmailReadonly };
-        static string ApplicationName = "ClientGMail";
+        private const string ApplicationName = "ClientGMail";
+        private const string UserAuth = "User";
+        private const string TokenPath = "token.json";
+        private const string CredentialsPath = "credentials.json";
+        private const string AuthUserMail = "me";
+        private const string HeaderMessage = "Subject";
 
-        private GmailService _service;
-        private UsersResource.MessagesResource.ListRequest _request;
+        private readonly string[] _scopesService = { GmailService.Scope.GmailReadonly };
+
+        private GmailService _gmailService;
 
 
-        public void Init()
+        public ControlRequestGMail()
         {
-            UserCredential credential;
+            ConnectGMailService();
+        }
 
-            using (var stream =
-                new FileStream("credentials.json", FileMode.Open, FileAccess.Read))
+        public void ConnectGMailService()
+        {
+            if (!File.Exists(CredentialsPath))
+                return;
+
+            UserCredential userCredential;
+            using (FileStream credentialsData = new FileStream(CredentialsPath, FileMode.Open, FileAccess.Read))
             {
-                // The file token.json stores the user's access and refresh tokens, and is created
-                // automatically when the authorization flow completes for the first time.
-                string credPath = "token.json";
-                credential = GoogleWebAuthorizationBroker.AuthorizeAsync(
-                    GoogleClientSecrets.Load(stream).Secrets,
-                    Scopes,
-                    "user",
+                userCredential = GoogleWebAuthorizationBroker.AuthorizeAsync(
+                    GoogleClientSecrets.Load(credentialsData).Secrets,
+                    _scopesService,
+                    UserAuth,
                     CancellationToken.None,
-                    new FileDataStore(credPath, true)).Result;
-                Console.WriteLine("Credential file saved to: " + credPath);
+                    new FileDataStore(TokenPath, true)).Result;
             }
 
-            // Create Gmail API service.
-            _service = new GmailService(new BaseClientService.Initializer()
+            _gmailService = new GmailService(new BaseClientService.Initializer()
             {
-                HttpClientInitializer = credential,
+                HttpClientInitializer = userCredential,
                 ApplicationName = ApplicationName,
             });
-
-            _request = _service.Users.Messages.List("me");
         }
 
 
-        public int GetCountMsg()
+        public int GetCountLetter()
         {
-            return _request.Execute().Messages.Count;
+            if (_gmailService == null)
+                return -1;
+
+            UsersResource.MessagesResource.ListRequest dataUserMessages = _gmailService.Users.Messages.List(AuthUserMail);
+            return dataUserMessages.Execute().Messages.Count;
         }
 
-        public string GetMsg(int idx)
+        public string GetHeaderLetter(int idx)
         {
-            var msgItem = _request.Execute().Messages[idx];
-            var msgReq = _service.Users.Messages.Get("me", msgItem.Id).Execute();
+            if (_gmailService == null)
+                return "";
+
+            UsersResource.MessagesResource.ListRequest dataUserMessages = _gmailService.Users.Messages.List(AuthUserMail);
+            var msgItem = dataUserMessages.Execute().Messages[idx];
+            var msgReq = _gmailService.Users.Messages.Get(AuthUserMail, msgItem.Id).Execute();
 
             var headers = msgReq.Payload.Headers;   // Список элементов сообщения
-            foreach (var headItm in headers)
+            foreach (MessagePartHeader headItm in headers)
             {
-                if (headItm.Name == "Subject")
+                if (headItm.Name == HeaderMessage)
                 {
                     return headItm.Value;
                 }

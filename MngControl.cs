@@ -20,26 +20,34 @@ namespace ClientGMail
         {
             Console.WriteLine("Запуск.");
 
-            List<string> _list = new List<string>();
-
-            Console.WriteLine("Связь с сервисом GMail.");
+            Console.WriteLine("Связь с сервисом GMail ...");
             ControlRequestGMail controlRequestGMail = new ControlRequestGMail();
-            controlRequestGMail.Init();
 
-            Console.WriteLine("Получение списка писем.");
+            Console.WriteLine("Получение списка заголовков писем ...");
+            List<string> headerMailLetter = new List<string>();
+            GetHeaderLetter(controlRequestGMail, headerMailLetter);
+
+            if (headerMailLetter.Count > 0)
+            {
+                Console.WriteLine("Запись списка писем в файл ...");
+                ControlFileGMail controlFileGMail = new ControlFileGMail(_pathFileHeaderMailLetter);
+                controlFileGMail.SaveHeaderMailLetter(headerMailLetter);
+            }
+
+            Console.WriteLine("Завершение.");
+        }
+
+        static void GetHeaderLetter(ControlRequestGMail controlRequestGMail, List<string> headerMailLetter)
+        {
             int i = 0;
-            int cnt = controlRequestGMail.GetCountMsg();
+            int cnt = controlRequestGMail.GetCountLetter();
             while (i < cnt)
             {
-                string txt = controlRequestGMail.GetMsg(i);
-                _list.Add(txt);
+                string header = controlRequestGMail.GetHeaderLetter(i);
+                headerMailLetter.Add(header);
 
                 i++;
             }
-
-            Console.WriteLine("Запись списка писем в файл.");
-            ControlFileGMail controlFileGMail = new ControlFileGMail(_pathFileHeaderMailLetter);
-            controlFileGMail.SaveHeaderMailLetter(_list);
         }
     }
 }
