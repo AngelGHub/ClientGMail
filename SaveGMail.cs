@@ -7,29 +7,28 @@ using System.Threading.Tasks;
 
 namespace ClientGMail
 {
-    class ControlFileGMail
+    class SaveGMail
     {
-        private readonly string _pathFileHeaderMailLetter;
+        private readonly string _pathFileHeader;
 
-        public string PathFileHeaderMailLetter
+
+        public SaveGMail(string pathFileHeader)
         {
-            get { return _pathFileHeaderMailLetter; }
+            _pathFileHeader = pathFileHeader;
         }
 
-
-        public ControlFileGMail(string pathFileHeaderMailLetter)
-        {
-            _pathFileHeaderMailLetter = pathFileHeaderMailLetter;
-        }
-
-        public void SaveHeaderMailLetter(List<string> headerMailLetter)
+        public void SaveHeader(LetterInfo letterInfo)
         {
 
-            using (FileStream fileStream = new FileStream(_pathFileHeaderMailLetter, FileMode.OpenOrCreate))
+            using (FileStream fileStream = new FileStream(_pathFileHeader, FileMode.OpenOrCreate))
             {
-                foreach (string header in headerMailLetter)
+                int idx = 0;
+                int cnt = letterInfo.Count();
+                while (idx < cnt)
                 {
-                    byte[] array = Encoding.UTF8.GetBytes(header + Environment.NewLine);
+                    Letter letter = letterInfo.Item(idx);
+
+                    byte[] array = Encoding.UTF8.GetBytes(letter.LetterData.Header + Environment.NewLine);
 
                     int offset = 0;
                     int count = 1024;
@@ -44,6 +43,8 @@ namespace ClientGMail
 
                         offset += count;
                     }
+
+                    idx++;
                 }
 
             }
